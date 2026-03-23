@@ -2,3 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --neon-glow: #f000ff; /* Magenta Neón Vibrante */
+  --background-dark: #0a0a0f; /* Negro Medianoche */
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --border-color: rgba(240, 0, 255, 0.2);
+}
+
+body {
+  background-color: var(--background-dark);
+  color: var(--text-primary);
+}
