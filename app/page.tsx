@@ -1,10 +1,13 @@
 'use client';
 
-import Link from 'next/link';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import AnimatedLogo from '@/components/AnimatedLogo';
 
+// Mantenemos tus datos y la estructura original
 const agendaItems = [
   {
     day: 'Viernes',
@@ -49,6 +52,16 @@ const galleryImages = [
 
 export default function Page() {
   const rootRef = useRef<HTMLElement | null>(null);
+  const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
+
+  const handleNavigate = (path: string) => {
+    if (isPending) return;
+    setIsPending(true);
+    setTimeout(() => {
+      router.push(path);
+    }, 700); // Sincronizado con la nueva duración de la animación
+  };
 
   useEffect(() => {
     if (!rootRef.current) return;
@@ -63,15 +76,7 @@ export default function Page() {
       gsap.fromTo('.ml-hero p', { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.45, delay: 0.3, ease: 'power2.out' });
       gsap.fromTo('.ml-hero-actions > *', { y: 16, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.45, delay: 0.38, stagger: 0.08, ease: 'power2.out' });
       gsap.fromTo('.ml-hero-meta li', { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.35, delay: 0.5, stagger: 0.06, ease: 'power2.out' });
-
-      gsap.to('.ml-hero-bg', {
-        scale: 1.05,
-        duration: 16,
-        repeat: -1,
-        yoyo: true,
-        ease: 'sine.inOut',
-      });
-
+      gsap.to('.ml-hero-bg', { scale: 1.05, duration: 16, repeat: -1, yoyo: true, ease: 'sine.inOut' });
       gsap.utils.toArray<HTMLElement>('.ml-section').forEach((section) => {
         gsap.fromTo(
           section.querySelectorAll('.ml-headline, .ml-event-card, .ml-gallery-item, .ml-vip-card, .ml-contact-info, .ml-form'),
@@ -82,10 +87,7 @@ export default function Page() {
             duration: 0.5,
             stagger: 0.08,
             ease: 'power2.out',
-            scrollTrigger: {
-              trigger: section,
-              start: 'top 78%',
-            },
+            scrollTrigger: { trigger: section, start: 'top 78%' },
           }
         );
       });
@@ -96,20 +98,29 @@ export default function Page() {
 
   return (
     <main className="ml-page" ref={rootRef}>
+      {isPending && (
+        <motion.div
+          className="fixed inset-0 bg-black z-[9999] flex items-center justify-center transform-gpu"
+          style={{ willChange: 'transform' }}
+          initial={{ x: '100%' }}
+          animate={{ x: '0%' }}
+          transition={{ duration: 0.6, ease: 'circOut' }}
+        >
+          <AnimatedLogo />
+        </motion.div>
+      )}
+
       <header className="ml-nav-wrap">
         <nav className="ml-nav">
-          <a href="#inicio" className="ml-brand">
-            Marbella Lounge
-          </a>
-
+          <a href="#inicio" className="ml-brand">Marbella Lounge</a>
           <div className="ml-links">
             <a href="#agenda">Agenda</a>
             <a href="#galeria">Galeria</a>
             <a href="#vip">VIP</a>
             <a href="#contacto">Contacto</a>
-            <Link href="/reservas" className="ml-cta-nav">
+            <button onClick={() => handleNavigate('/reservas')} className="ml-cta-nav">
               Reservar Ahora
-            </Link>
+            </button>
           </div>
         </nav>
       </header>
@@ -117,21 +128,16 @@ export default function Page() {
       <section className="ml-hero" id="inicio">
         <div className="ml-hero-bg" aria-hidden="true" />
         <div className="ml-hero-overlay" aria-hidden="true" />
-
         <div className="ml-hero-content">
           <span className="ml-badge">Abierto ahora</span>
           <h1>Viernes, Sabado y Domingo</h1>
           <p>La experiencia musical mas exclusiva de la ciudad</p>
-
           <div className="ml-hero-actions">
-            <Link href="/reservas" className="ml-cta-main">
+            <button onClick={() => handleNavigate('/reservas')} className="ml-cta-main">
               Reservar Ahora
-            </Link>
-            <a href="#agenda" className="ml-cta-ghost">
-              Ver Eventos
-            </a>
+            </button>
+            <a href="#agenda" className="ml-cta-ghost">Ver Eventos</a>
           </div>
-
           <ul className="ml-hero-meta">
             <li>Jueves - Domingo</li>
             <li>23:00 - 06:00</li>
@@ -142,12 +148,9 @@ export default function Page() {
 
       <section className="ml-section" id="agenda">
         <div className="ml-headline">
-          <h2>
-            Agenda <span>Semanal</span>
-          </h2>
+          <h2>Agenda <span>Semanal</span></h2>
           <p>Los mejores eventos y artistas cada fin de semana</p>
         </div>
-
         <div className="ml-agenda-grid">
           {agendaItems.map((item) => (
             <article className="ml-event-card" key={item.day}>
@@ -168,12 +171,9 @@ export default function Page() {
 
       <section className="ml-section" id="galeria">
         <div className="ml-headline">
-          <h2>
-            Vive la <span>Experiencia</span>
-          </h2>
+          <h2>Vive la <span>Experiencia</span></h2>
           <p>Un vistazo al ambiente exclusivo de Marbella Lounge</p>
         </div>
-
         <div className="ml-gallery-grid">
           {galleryImages.map((img, index) => (
             <div className="ml-gallery-item" key={img} style={{ backgroundImage: `url(${img})` }}>
@@ -185,12 +185,9 @@ export default function Page() {
 
       <section className="ml-section" id="vip">
         <div className="ml-headline">
-          <h2>
-            Experiencia <span>VIP</span>
-          </h2>
+          <h2>Experiencia <span>VIP</span></h2>
           <p>Disfruta de privilegios exclusivos y servicios premium</p>
         </div>
-
         <div className="ml-vip-grid">
           <article className="ml-vip-card">
             <h3>Reservas Lounge y VIP</h3>
@@ -213,28 +210,18 @@ export default function Page() {
 
       <section className="ml-section" id="contacto">
         <div className="ml-headline">
-          <h2>
-            Ponte en <span>Contacto</span>
-          </h2>
+          <h2>Ponte en <span>Contacto</span></h2>
           <p>Tienes preguntas? Estamos aqui para ayudarte</p>
         </div>
-
         <div className="ml-contact-grid">
           <div className="ml-contact-info">
             <h3>Informacion de Contacto</h3>
-            <p>
-              <strong>Ubicacion:</strong> Av. Ricardo Soriano, 72, 29601 Marbella
-            </p>
-            <p>
-              <strong>WhatsApp:</strong> +34 612 345 678
-            </p>
-            <p>
-              <strong>Horario:</strong> Jueves a Domingo, 23:00 - 06:00
-            </p>
+            <p><strong>Ubicacion:</strong> Av. Ricardo Soriano, 72, 29601 Marbella</p>
+            <p><strong>WhatsApp:</strong> +34 612 345 678</p>
+            <p><strong>Horario:</strong> Jueves a Domingo, 23:00 - 06:00</p>
             <a href="https://maps.google.com/?q=Av.+Ricardo+Soriano+72+Marbella" target="_blank" rel="noreferrer">
               Ver en Google Maps
             </a>
-
             <iframe
               title="Mapa Marbella Lounge"
               src="https://www.google.com/maps?q=Av.+Ricardo+Soriano+72,+Marbella&output=embed"
@@ -242,24 +229,11 @@ export default function Page() {
               referrerPolicy="no-referrer-when-downgrade"
             />
           </div>
-
           <form className="ml-form">
-            <label>
-              Nombre Completo
-              <input type="text" placeholder="Tu nombre" />
-            </label>
-            <label>
-              Email
-              <input type="email" placeholder="tu@email.com" />
-            </label>
-            <label>
-              Telefono
-              <input type="tel" placeholder="+34 600 000 000" />
-            </label>
-            <label>
-              Mensaje
-              <textarea placeholder="Cuentanos en que podemos ayudarte..." rows={5} />
-            </label>
+            <label>Nombre Completo <input type="text" placeholder="Tu nombre" /></label>
+            <label>Email <input type="email" placeholder="tu@email.com" /></label>
+            <label>Telefono <input type="tel" placeholder="+34 600 000 000" /></label>
+            <label>Mensaje <textarea placeholder="Cuentanos en que podemos ayudarte..." rows={5} /></label>
             <button type="button">Enviar Mensaje</button>
           </form>
         </div>
@@ -283,7 +257,9 @@ export default function Page() {
         </div>
         <div>
           <h4>CTA</h4>
-          <Link href="/reservas">Reservar Ahora</Link>
+          <button onClick={() => handleNavigate('/reservas')} className="text-left text-white/90 hover:text-white transition-colors">
+            Reservar Ahora
+          </button>
         </div>
       </footer>
     </main>
