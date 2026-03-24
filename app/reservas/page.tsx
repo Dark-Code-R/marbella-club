@@ -580,7 +580,9 @@ export default function Page() {
           duration: 1.8,
           ease: 'sine.inOut',
           opacity: gsap.utils.random(0.4, 0.9),
-          onComplete: () => gsap.delayedCall(gsap.utils.random(0.6, 1.4), cycleAmbient),
+          onComplete: () => {
+            gsap.delayedCall(gsap.utils.random(0.6, 1.4), cycleAmbient);
+          },
         });
         // Cambiar color del floor glow también
         gsap.to('.stage-floor-glow', {
@@ -594,7 +596,9 @@ export default function Page() {
       // Strobe flash — dispara cada 5–10 segundos
       const strobeLoop = () => {
         const stl = gsap.timeline({
-          onComplete: () => gsap.delayedCall(gsap.utils.random(5, 10), strobeLoop),
+          onComplete: () => {
+            gsap.delayedCall(gsap.utils.random(5, 10), strobeLoop);
+          },
         });
         // 2-3 destellos rápidos consecutivos
         const flashes = Math.random() > 0.5 ? 3 : 2;
