@@ -3,11 +3,19 @@
 import React, { useEffect, useRef } from 'react';
 import './AnimatedLogo.css';
 
-const AnimatedLogo = () => {
+// Define Props type for the component
+type AnimatedLogoProps = {
+  disableParticles?: boolean;
+};
+
+const AnimatedLogo = ({ disableParticles = false }: AnimatedLogoProps) => {
   const clipGroupRef = useRef<SVGGElement>(null);
   const logoWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Mobile detection for performance optimization
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
     const NS = 'http://www.w3.org/2000/svg';
     const clipGroup = clipGroupRef.current;
     const wrap = logoWrapperRef.current;
@@ -15,11 +23,15 @@ const AnimatedLogo = () => {
     if (!clipGroup || !wrap) return;
 
     // --- Cleanup previous elements to prevent duplication on HMR ---
-    const existingRays = clipGroup.querySelectorAll('.rm');
+    const existingRays = Array.from(clipGroup.querySelectorAll('.rm'));
     existingRays.forEach(ray => ray.remove());
-    const existingParticles = wrap.querySelectorAll('.particle');
+    const existingParticles = Array.from(wrap.querySelectorAll('.particle'));
     existingParticles.forEach(p => p.remove());
     // --- End cleanup ---
+
+    // Store created elements for cleanup
+    const createdRays: SVGElement[] = [];
+    const createdParticles: HTMLDivElement[] = [];
 
     // Original sun position for calculation
     const SOX = 390, SOY = 95;
@@ -56,22 +68,44 @@ const AnimatedLogo = () => {
         `${SNX},${SNY} ${np1[0].toFixed(1)},${np1[1].toFixed(1)} ${np2[0].toFixed(1)},${np2[1].toFixed(1)}`
       );
       clipGroup.appendChild(el);
+      createdRays.push(el);
     });
 
-    const colors = ['#FF00FF','#00FFFF','#FFFF00','#FF69B4','#7FFFD4'];
-    for (let i = 0; i < 35; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      const s = Math.random()*5+2;
-      const c = colors[Math.floor(Math.random()*colors.length)];
-      p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*600}px;bottom:${Math.random()*60}px;background:${c};box-shadow:0 0 ${s*2}px ${c};animation-duration:${Math.random()*4+3}s;animation-delay:${Math.random()*6}s;`;
-      wrap.appendChild(p);
+    if (!disableParticles) {
+      const wrapWidth = wrap.offsetWidth;
+      const wrapHeight = wrap.offsetHeight;
+      const colors = ['#FF00FF','#00FFFF','#FFFF00','#FF69B4','#7FFFD4'];
+      const particleCount = isMobile ? 15 : 35; // Limit particles on mobile
+      for (let i = 0; i < particleCount; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const s = Math.random()*5+2;
+        const c = colors[Math.floor(Math.random()*colors.length)];
+        // Use dynamic width and a portion of height for particle positioning
+        p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*wrapWidth}px;bottom:${Math.random()*(wrapHeight * 0.2)}px;background:${c};animation-duration:${Math.random()*4+3}s;animation-delay:${Math.random()*6}s;will-change:transform,opacity;transform:translateZ(0);`;
+        wrap.appendChild(p);
+        createdParticles.push(p);
+      }
     }
-  }, []);
+
+    // Cleanup function to run on component unmount
+    return () => {
+      createdRays.forEach(ray => ray.remove());
+      createdParticles.forEach(p => p.remove());
+    };
+  }, [disableParticles]);
 
   return (
-    <div className="logo-wrapper" ref={logoWrapperRef}>
-      <svg width="600" height="500" viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg">
+    <div 
+      className="logo-wrapper transform-gpu will-change-transform" 
+      ref={logoWrapperRef} 
+      style={{ 
+        willChange: 'transform, opacity',
+        transform: 'translateZ(0)',
+        backfaceVisibility: 'hidden'
+      }}
+    >
+      <svg width="100%" height="auto" viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg" overflow="visible">
         <defs>
           <clipPath id="semi">
             <path d="M 130 293 A 159.5 159.5 0 0 1 449 293 Z"/>
@@ -104,4 +138,4 @@ const AnimatedLogo = () => {
   );
 };
 
-export default AnimatedLogo;
+export default React.memo(AnimatedLogo);

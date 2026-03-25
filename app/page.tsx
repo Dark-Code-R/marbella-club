@@ -58,9 +58,10 @@ export default function Page() {
   const handleNavigate = (path: string) => {
     if (isPending) return;
     setIsPending(true);
+    // Reduced timeout to match new animation duration
     setTimeout(() => {
       router.push(path);
-    }, 700); // Sincronizado con la nueva duración de la animación
+    }, 400); // Sincronizado con la nueva duración de la animación (0.4s)
   };
 
   useEffect(() => {
@@ -72,8 +73,6 @@ export default function Page() {
     const ctx = gsap.context(() => {
       gsap.fromTo('.ml-nav-wrap', { y: -30, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.45, ease: 'power2.out' });
       gsap.fromTo('.ml-badge', { y: 16, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.45, delay: 0.12, ease: 'power2.out' });
-      gsap.fromTo('.ml-hero h1', { y: 24, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.55, delay: 0.2, ease: 'power2.out' });
-      gsap.fromTo('.ml-hero p', { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.45, delay: 0.3, ease: 'power2.out' });
       gsap.fromTo('.ml-hero-actions > *', { y: 16, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.45, delay: 0.38, stagger: 0.08, ease: 'power2.out' });
       gsap.fromTo('.ml-hero-meta li', { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.35, delay: 0.5, stagger: 0.06, ease: 'power2.out' });
       gsap.to('.ml-hero-bg', { scale: 1.05, duration: 16, repeat: -1, yoyo: true, ease: 'sine.inOut' });
@@ -100,13 +99,17 @@ export default function Page() {
     <main className="ml-page" ref={rootRef}>
       {isPending && (
         <motion.div
-          className="fixed inset-0 bg-black z-[9999] flex items-center justify-center transform-gpu"
-          style={{ willChange: 'transform' }}
+          className="fixed inset-0 bg-black z-[9999] flex items-center justify-center transform-gpu will-change-transform"
+          style={{ 
+            willChange: 'transform, opacity', 
+            transform: 'translateZ(0)', 
+            backfaceVisibility: 'hidden' 
+          }}
           initial={{ x: '100%' }}
           animate={{ x: '0%' }}
-          transition={{ duration: 0.6, ease: 'circOut' }}
+          transition={{ type: "tween", duration: 0.4, ease: 'linear' }}
         >
-          <AnimatedLogo />
+          <AnimatedLogo disableParticles={true} />
         </motion.div>
       )}
 
@@ -125,20 +128,25 @@ export default function Page() {
         </nav>
       </header>
 
-      <section className="ml-hero" id="inicio">
+      <section className="ml-hero flex flex-col items-center justify-center min-h-[85vh] pt-16 md:pt-24" id="inicio">
         <div className="ml-hero-bg" aria-hidden="true" />
         <div className="ml-hero-overlay" aria-hidden="true" />
-        <div className="ml-hero-content">
+        <div className="ml-hero-content flex flex-col items-center gap-4">
           <span className="ml-badge">Abierto ahora</span>
-          <h1>Viernes, Sabado y Domingo</h1>
-          <p>La experiencia musical mas exclusiva de la ciudad</p>
-          <div className="ml-hero-actions">
+          <div 
+            className="relative w-[80vw] md:w-[40vw] min-h-[300px] flex items-center justify-center overflow-visible mx-auto transform-gpu"
+            style={{ willChange: 'transform, opacity' }}
+          >
+            <AnimatedLogo />
+          </div>
+          <p className="text-white text-sm md:text-lg font-light tracking-[0.3em] uppercase opacity-80">LOUNGE</p>
+          <div className="ml-hero-actions mt-0">
             <button onClick={() => handleNavigate('/reservas')} className="ml-cta-main">
               Reservar Ahora
             </button>
             <a href="#agenda" className="ml-cta-ghost">Ver Eventos</a>
           </div>
-          <ul className="ml-hero-meta">
+          <ul className="ml-hero-meta mt-0">
             <li>Jueves - Domingo</li>
             <li>23:00 - 06:00</li>
             <li>Marbella, Espana</li>
